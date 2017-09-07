@@ -17,7 +17,7 @@ class WordWrapTest extends PHPUnit_Framework_TestCase
 
     public function test_it_has_function_wrap()
     {
-        $this->assertTrue(function_exists('wrap'), 'Function wrap doesn\'t exist');
+        $this->assertTrue(function_exists('wrap'), 'Function wrap is not defined');
     }
 
     public function test_it_returns_a_string()
@@ -30,7 +30,6 @@ class WordWrapTest extends PHPUnit_Framework_TestCase
         $length = -1;
 
         $this->expectExceptionMessage("Can not wrap a string into chunks with length: {$length}");
-
 
         wrap('Example string', $length);
     }
@@ -52,6 +51,7 @@ class WordWrapTest extends PHPUnit_Framework_TestCase
     {
         $length = 5;
         $string = '           String with 11 spaces at the beginning';
+
         $expected = implode("\n", [
             '     ',
             '     ',
@@ -102,7 +102,6 @@ class WordWrapTest extends PHPUnit_Framework_TestCase
     public function test_it_splits_long_words()
     {
         $length = 5;
-
         $string = 'Veeeeeeryy long woooooord in a string';
 
         $expected = implode("\n", [
@@ -119,14 +118,66 @@ class WordWrapTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($expected, wrap($string, $length));
     }
 
+    public function test_it_works_with_multibyte_strings()
+    {
+
+        //Cyrillic text
+        $length = 10;
+        $string = ' Привет, это кирриллистический текст ';
+
+        $expected = implode("\n", [
+            ' Привет,',
+            'это',
+            'кирриллист',
+            'ический',
+            'текст ',
+        ]);
+
+        $this->assertEquals($expected, wrap($string, $length));
+
+
+        //Chinese text
+        $length = 2;
+        $string = '請你 再説一次好嗎？';
+
+        $expected = implode("\n", [
+            '請你',
+            '再説',
+            '一次',
+            '好嗎',
+            '？',
+        ]);
+
+        $this->assertEquals($expected, wrap($string, $length));
+
+
+        //Random characters
+        $length = 5;
+        $string = 'Tdzћћ÷zzћzћћzћћћ ћћzћzћzz•∆љљњ…і';
+
+
+        $expected = implode("\n", [
+            'Tdzћћ',
+            '÷zzћz',
+            'ћћzћћ',
+            'ћ',
+            'ћћzћz',
+            'ћzz•∆',
+            'љљњ…і',
+        ]);
+
+        $this->assertEquals($expected, wrap($string, $length));
+    }
+
     public function test_it_behaves_like_php_wordwrap()
     {
+
         /*
          * This is true only in certain scenarios as php function wordwrap doesn't trim spaces between words
          *
-         * And since both functions don't process multi-byte characters properly the tests pass for those as well :)
+         * Since wordwrap doesn't work correctly with strings which contain non-latin characters we can not include
+         * those tests
          */
-
 
         $this->assertItBehavesLikeWordWrap('I am so blue I\'m greener than purple.', 8);
 
@@ -138,7 +189,7 @@ class WordWrapTest extends PHPUnit_Framework_TestCase
 
         $this->assertItBehavesLikeWordWrap("Wednesday is hu\nmp day, but has anyone\nasked the camel if he’s happy about it?", 25);
 
-        $this->assertItBehavesLikeWordWrap('I often see the time 11:11 or 12:34 on clocks.', 300);
+        $this->assertItBehavesLikeWordWrap('I often see the time 11:11 or 12:34 on clocks.', 2);
 
         $this->assertItBehavesLikeWordWrap('This is the last random sentence I will be writing and I am going to stop mid-sent', 11);
 
@@ -148,11 +199,11 @@ class WordWrapTest extends PHPUnit_Framework_TestCase
 
         $this->assertItBehavesLikeWordWrap('Veeeeeeryy long word in a string', 5);
 
-        $this->assertItBehavesLikeWordWrap('Киррилистический текст', 5);
+        //$this->assertItBehavesLikeWordWrap('Киррилистический текст', 5);
 
-        $this->assertItBehavesLikeWordWrap('Text that has mācrons', 5);
+        //$this->assertItBehavesLikeWordWrap('Text that has mācrons', 5);
 
-        $this->assertItBehavesLikeWordWrap('Tdzћћ÷zzћzћћzћћћ ћћzћzћzz•∆љљњ…і', 5);
+        //$this->assertItBehavesLikeWordWrap('Tdzћћ÷zzћzћћzћћћ ћћzћzћzz•∆љљњ…і', 5);
 
         $this->assertItBehavesLikeWordWrap('Veeeeeeryydfgsdjgsfdgs dfjghdsdfjgsdfgjsdfg sdjgsdfghsdfjghsdfgjsdkgsdkfmsd ', 69);
 
